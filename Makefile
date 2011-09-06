@@ -35,9 +35,9 @@ PACKAGE_NAME	= flashmap
 VERSION_MAJOR	= 0
 VERSION_MINOR	= 3
 
-AR		= $(CROSS_COMPILE)ar
-CC		= $(CROSS_COMPILE)gcc
-LD		= $(CROSS_COMPILE)ld
+AR		?= $(CROSS_COMPILE)ar
+CC		?= $(CROSS_COMPILE)gcc
+LD		?= $(CROSS_COMPILE)ld
 MAKE		= make
 RM		= rm -f
 
