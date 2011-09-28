@@ -51,6 +51,8 @@ sbindir		= $(prefix)/sbin
 libdir		= $(prefix)/lib
 includedir	= $(prefix)/include
 
+pkgconfig_dir	= /usr/lib/pkgconfig
+
 DEFS		= -DVERSION_MAJOR=$(VERSION_MAJOR)\
                   -DVERSION_MINOR=$(VERSION_MINOR)
 CFLAGS		+= -O2 -Wall -Werror -Wno-unused-parameter -Ilib/ $(DEFS)
@@ -131,7 +133,34 @@ tarball: export
 	@rm -rf $(EXPORTDIR)/$(RELEASENAME)
 	@echo Created $(EXPORTDIR)/$(RELEASENAME).tar.bz2
 
-install: all
+USE_PKG_CONFIG ?= $(shell if [ -d "$(ROOT)$(pkgconfig_dir)" ]; then echo 1; else echo 0; fi)
+
+ifeq ($(USE_PKG_CONFIG),1)
+define FMAP_PC
+prefix=$(prefix)
+exec_prefix=$(prefix)
+includedir=$(includedir)
+libdir=$(libdir)
+
+Name: fmap
+Description: Flashmap library
+Version: $(VERSION_MAJOR).$(VERSION_MINOR)
+Requires:
+Cflags: -I$(includedir)
+Libs: -L$(libdir) -lfmap
+endef
+export FMAP_PC
+
+pkgconfig_install:
+	@echo "Installing pkg-config .pc file"
+	@echo "$$FMAP_PC" > fmap.pc
+	$(INSTALL_DIR) $(DESTDIR)$(pkgconfig_dir)
+	$(INSTALL_DATA) fmap.pc $(DESTDIR)$(pkgconfig_dir)
+else
+pkgconfig_install:
+endif
+
+install: all pkgconfig_install
 	$(INSTALL_DIR) $(DESTDIR)$(sbindir)
 	$(INSTALL_DIR) $(DESTDIR)$(libdir)
 	$(INSTALL_DIR) $(DESTDIR)$(includedir)
@@ -143,7 +172,15 @@ install: all
 	$(INSTALL_DATA) $(SHARED_OBJ_FILE) $(DESTDIR)$(libdir)
 	@echo Installed shared library, please run ldconfig to set up symlinks.
 
-uninstall:
+ifeq ($(USE_PKG_CONFIG),1)
+pkgconfig_uninstall:
+	@echo "Removing pkg-config .pc file"
+	$(RM) $(DESTDIR)$(pkgconfig_dir)/fmap.pc
+else
+pkgconfig_uninstall:
+endif
+
+uninstall: pkgconfig_uninstall
 	$(RM) $(DESTDIR)$(sbindir)/fmap_decode
 	$(RM) $(DESTDIR)$(sbindir)/fmap_encode
 	$(RM) $(DESTDIR)$(sbindir)/fmap_csum
