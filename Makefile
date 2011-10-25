@@ -147,7 +147,7 @@ Description: Flashmap library
 Version: $(VERSION_MAJOR).$(VERSION_MINOR)
 Requires:
 Cflags: -I$(includedir)
-Libs: -L$(libdir) -lfmap
+Libs: -L$(libdir) -lfmap-$(VERSION_MAJOR).$(VERSION_MINOR)
 endef
 export FMAP_PC
 
