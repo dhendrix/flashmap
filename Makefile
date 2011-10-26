@@ -46,9 +46,15 @@ INSTALL_DATA	:= $(INSTALL) -m 644
 INSTALL_DIR	:= $(INSTALL) -m 755 -d
 INSTALL_PROGRAM	:= $(INSTALL) -m 755
 
+LN		= ln
+SYMLINK		= $(LN) -sf
+
+# OS package manager may set LIBDIR with respect to 32-bit/64-bit environment
+LIBDIR		?= lib
+
 prefix		= /usr/local
 sbindir		= $(prefix)/sbin
-libdir		= $(prefix)/lib
+libdir		= $(prefix)/$(LIBDIR)
 includedir	= $(prefix)/include
 
 pkgconfig_dir	= /usr/lib/pkgconfig
@@ -61,10 +67,12 @@ LINKOPTS	=
 
 PROGRAMS	= fmap_decode fmap_encode fmap_csum libfmap_example
 TEST_PROGRAM	= fmap_test
-SHARED_OBJ	= libfmap.so
-SHARED_OBJ_FILE	= libfmap-$(VERSION_MAJOR).$(VERSION_MINOR).so
-LIB		= lib
+SRC_LIBDIR	= lib
 GENHTML_OUTPUT	?= html
+
+SHARED_OBJ		= libfmap
+SHARED_OBJ_FILE		= $(SHARED_OBJ).so.0.0.0
+SHARED_OBJ_SONAME	= $(SHARED_OBJ).so.0
 
 SVNVERSION := $(shell LC_ALL=C svnversion -cn . 2>/dev/null | sed -e "s/.*://" -e "s/\([0-9]*\).*/\1/" | grep "[0-9]" || LC_ALL=C svn info . 2>/dev/null | awk '/^Revision:/ {print $$2 }' | grep "[0-9]" || LC_ALL=C git svn info . 2>/dev/null | awk '/^Revision:/ {print $$2 }' | grep "[0-9]" || echo unknown)
 
@@ -72,7 +80,7 @@ RELEASENAME := $(PACKAGE_NAME)-$(VERSION_MAJOR).$(VERSION_MINOR)-r$(SVNVERSION)
 
 export CFLAGS
 
-all: $(PROGRAMS) $(SHARED_OBJ)
+all: $(PROGRAMS) $(SHARED_OBJ_FILE)
 
 help:
 	@echo "flashmap build targets:"
@@ -84,21 +92,21 @@ help:
 	@echo ""
 
 
-$(LIB)/libfmap.a:
-	@$(MAKE) -C $(LIB)
-	ar rcs $@ $(LIB)/*.o
+$(SRC_LIBDIR)/libfmap.a:
+	@$(MAKE) -C $(SRC_LIBDIR)
+	ar rcs $@ $(SRC_LIBDIR)/*.o
 
-$(SHARED_OBJ): $(LIB)/libfmap.a
-	$(CC) -fpic -shared -Wl,-soname,$@ -o $(SHARED_OBJ_FILE) -Wl,-whole-archive $^ -Wl,-no-whole-archive
+$(SHARED_OBJ_FILE): $(SRC_LIBDIR)/libfmap.a
+	$(CC) -fpic -shared -Wl,-soname,$(SHARED_OBJ_SONAME) -o $@ -Wl,-whole-archive $^ -Wl,-no-whole-archive
 
-$(PROGRAMS): $(LIB)/libfmap.a
+$(PROGRAMS): $(SRC_LIBDIR)/libfmap.a
 	$(CC) $(CFLAGS) $(LINKOPTS) -I. -o $@ $@.c $^
 
 # Add shared object filename to gcc command in case it's not installed already
-$(LIBFMAP_EXAMPLE): $(SHARED_OBJ)
+$(LIBFMAP_EXAMPLE): $(SHARED_OBJ_FILE)
 	$(CC) $(CFLAGS) $(LINKOPTS) -o $@ $@.c $(SHARED_OBJ_FILE)
 
-$(TEST_PROGRAM): $(LIB)/libfmap.a
+$(TEST_PROGRAM): $(SRC_LIBDIR)/libfmap.a
 	$(CC) $(CFLAGS) $(LINKOPTS) -I. -o $@ $@.c $^
 
 test: CFLAGS += $(CFLAGS_GCOV)
@@ -170,7 +178,9 @@ install: all pkgconfig_install
 	$(INSTALL_DATA) lib/fmap.h $(DESTDIR)$(includedir)
 	$(INSTALL_DATA) lib/valstr.h $(DESTDIR)$(includedir)
 	$(INSTALL_DATA) $(SHARED_OBJ_FILE) $(DESTDIR)$(libdir)
-	@echo Installed shared library, please run ldconfig to set up symlinks.
+	$(SYMLINK) $(SHARED_OBJ_FILE) $(DESTDIR)$(libdir)/$(SHARED_OBJ).so
+	$(SYMLINK) $(SHARED_OBJ_FILE) $(DESTDIR)$(libdir)/$(SHARED_OBJ).so.0
+	@echo Installed shared library, please run ldconfig.
 
 ifeq ($(USE_PKG_CONFIG),1)
 pkgconfig_uninstall:
@@ -186,8 +196,9 @@ uninstall: pkgconfig_uninstall
 	$(RM) $(DESTDIR)$(sbindir)/fmap_csum
 	$(RM) $(DESTDIR)$(includedir)/fmap.h
 	$(RM) $(DESTDIR)$(includedir)/valstr.h
-	$(RM) $(DESTDIR)$(libdir)/$(SHARED_OBJ)
 	$(RM) $(DESTDIR)$(libdir)/$(SHARED_OBJ_FILE)
+	$(RM) $(DESTDIR)$(libdir)/$(SHARED_OBJ).so
+	$(RM) $(DESTDIR)$(libdir)/$(SHARED_OBJ).so.0
 
 .PHONY: clean
 RCS_FIND_IGNORE := \( -name SCCS -o -name BitKeeper -o -name .svn -o -name CVS -o -name .pc -o -name .hg -o -name .git \) -prune -o
@@ -202,7 +213,7 @@ lcov-clean:
 
 clean: lcov-clean
 	rm -f *.o *.a $(PROGRAMS) $(TEST_PROGRAM) $(LIBFMAP_EXAMPLE) $(SHARED_OBJ_FILE)
-	@$(MAKE) -C $(LIB) clean
+	@$(MAKE) -C $(SRC_LIBDIR) clean
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $^ -I. -o $@
