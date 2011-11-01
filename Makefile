@@ -52,7 +52,7 @@ SYMLINK		= $(LN) -sf
 # OS package manager may set LIBDIR with respect to 32-bit/64-bit environment
 LIBDIR		?= lib
 
-prefix		= /usr/local
+prefix		= /usr
 sbindir		= $(prefix)/sbin
 libdir		= $(prefix)/$(LIBDIR)
 includedir	= $(prefix)/include
