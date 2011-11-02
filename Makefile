@@ -57,7 +57,7 @@ sbindir		= $(prefix)/sbin
 libdir		= $(prefix)/$(LIBDIR)
 includedir	= $(prefix)/include
 
-pkgconfig_dir	= /usr/lib/pkgconfig
+pkgconfig_dir	= $(libdir)/pkgconfig
 
 DEFS		= -DVERSION_MAJOR=$(VERSION_MAJOR)\
                   -DVERSION_MINOR=$(VERSION_MINOR)
