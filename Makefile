@@ -177,6 +177,7 @@ install: all pkgconfig_install
 	$(INSTALL_PROGRAM) fmap_csum $(DESTDIR)$(sbindir)
 	$(INSTALL_DATA) lib/fmap.h $(DESTDIR)$(includedir)
 	$(INSTALL_DATA) lib/valstr.h $(DESTDIR)$(includedir)
+	$(INSTALL_DATA) $(SRC_LIBDIR)/libfmap.a $(DESTDIR)$(libdir)
 	$(INSTALL_DATA) $(SHARED_OBJ_FILE) $(DESTDIR)$(libdir)
 	$(SYMLINK) $(SHARED_OBJ_FILE) $(DESTDIR)$(libdir)/$(SHARED_OBJ).so
 	$(SYMLINK) $(SHARED_OBJ_FILE) $(DESTDIR)$(libdir)/$(SHARED_OBJ).so.0
@@ -196,6 +197,7 @@ uninstall: pkgconfig_uninstall
 	$(RM) $(DESTDIR)$(sbindir)/fmap_csum
 	$(RM) $(DESTDIR)$(includedir)/fmap.h
 	$(RM) $(DESTDIR)$(includedir)/valstr.h
+	$(RM) $(DESTDIR)$(libdir)/libfmap.a
 	$(RM) $(DESTDIR)$(libdir)/$(SHARED_OBJ_FILE)
 	$(RM) $(DESTDIR)$(libdir)/$(SHARED_OBJ).so
 	$(RM) $(DESTDIR)$(libdir)/$(SHARED_OBJ).so.0
