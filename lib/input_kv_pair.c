@@ -85,7 +85,7 @@ static int do_strcpy(void *dest, const char *src, size_t max_len)
 	if (!dest || !src || (strlen(src) > max_len))
 		return -1;
 
-	strncpy(dest, src, strlen(src));
+	strncpy(dest, src, max_len);
 	return 0;
 }
 
