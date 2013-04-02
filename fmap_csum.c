@@ -58,9 +58,10 @@ void print_csum(uint8_t *digest, size_t len)
 	char *str;
 	char tmp[3];
 	unsigned int i;
+	int strlength = len * 2 + 1;
 
-	str = malloc((len * 2) + 1);
-	memset(str, '\0', sizeof(str));
+	str = malloc(strlength);
+	memset(str, '\0', strlength);
 	for (i = 0; i < len; i++) {
 		snprintf(tmp, 3, "%02x", digest[i]);
 		strncat(str, tmp, 3);
