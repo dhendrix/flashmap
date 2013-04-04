@@ -223,7 +223,7 @@ int fmap_get_csum(const uint8_t *image, unsigned int image_len, uint8_t **digest
 	int fmap_offset;
 	SHA_CTX ctx;
 
-	if ((image == NULL))
+	if (image == NULL)
 		return -1;
 
 	if ((fmap_offset = fmap_find(image, image_len)) < 0)
