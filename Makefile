@@ -61,7 +61,7 @@ pkgconfig_dir	= $(libdir)/pkgconfig
 
 DEFS		= -DVERSION_MAJOR=$(VERSION_MAJOR)\
                   -DVERSION_MINOR=$(VERSION_MINOR)
-CFLAGS		+= -O2 -Wall -Wno-unused-parameter -Ilib/ $(DEFS)
+CFLAGS		+= -O2 -Wall -Werror -Wno-unused-parameter -Ilib/ $(DEFS)
 CFLAGS_GCOV	:= -fprofile-arcs -ftest-coverage -lgcov
 LINKOPTS	=
 
