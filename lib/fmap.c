@@ -349,10 +349,11 @@ int fmap_append_area(struct fmap **fmap,
 	return new_size;
 }
 
-struct fmap_area *fmap_find_area(struct fmap *fmap, const char *name)
+const struct fmap_area *fmap_find_area(const struct fmap *fmap,
+				       const char *name)
 {
 	int i;
-	struct fmap_area *area = NULL;
+	const struct fmap_area *area = NULL;
 
 	if (!fmap || !name)
 		return NULL;
@@ -532,10 +533,10 @@ fmap_append_area_test_exit:
 	return status;
 }
 
-static int fmap_find_area_test(struct fmap *fmap)
+static int fmap_find_area_test(const struct fmap *fmap)
 {
 	status = fail;
-	char area_name[] = "test_area_1";
+	const char area_name[] = "test_area_1";
 
 	if (fmap_find_area(NULL, area_name) ||
 	    fmap_find_area(fmap, NULL)) {
