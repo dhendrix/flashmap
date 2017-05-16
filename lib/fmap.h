@@ -36,6 +36,10 @@
 #ifndef FLASHMAP_LIB_FMAP_H__
 #define FLASHMAP_LIB_FMAP_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <inttypes.h>
 
 #include <valstr.h>
@@ -189,5 +193,9 @@ extern const struct fmap_area *fmap_find_area(const struct fmap *fmap,
 
 /* unit testing stuff */
 extern int fmap_test();
+
+#ifdef __cplusplus
+}  /* extern "C" */
+#endif
 
 #endif	/* FLASHMAP_LIB_FMAP_H__*/
