@@ -51,11 +51,13 @@ Usage:
   tuple of decoded area flags.
 """
 
+
 import struct
 import sys
 
+
 # constants imported from lib/fmap.h
-FMAP_SIGNATURE = "__FMAP__"
+FMAP_SIGNATURE = '__FMAP__'
 FMAP_VER_MAJOR = 1
 FMAP_VER_MINOR = 0
 FMAP_STRLEN = 32
@@ -82,9 +84,10 @@ FMAP_AREA_NAMES = (
     'flags',
 )
 
+
 # format string
-FMAP_HEADER_FORMAT = "<8sBBQI%dsH" % (FMAP_STRLEN)
-FMAP_AREA_FORMAT = "<II%dsH" % (FMAP_STRLEN)
+FMAP_HEADER_FORMAT = '<8sBBQI%dsH' % (FMAP_STRLEN)
+FMAP_AREA_FORMAT = '<II%dsH' % (FMAP_STRLEN)
 
 
 def _fmap_decode_header(blob, offset):
@@ -98,8 +101,8 @@ def _fmap_decode_header(blob, offset):
 
   if header['signature'] != FMAP_SIGNATURE:
     raise struct.error('Invalid signature')
-  if header['ver_major'] != FMAP_VER_MAJOR or \
-     header['ver_minor'] != FMAP_VER_MINOR:
+  if (header['ver_major'] != FMAP_VER_MAJOR or
+      header['ver_minor'] != FMAP_VER_MINOR):
     raise struct.error('Incompatible version')
 
   # convert null-terminated names
@@ -134,13 +137,13 @@ def fmap_decode(blob, offset=None):
             the blob.
   """
   fmap = {}
-  if offset == None:
+  if offset is None:
     # try search magic in fmap
     offset = blob.find(FMAP_SIGNATURE)
   (fmap, size) = _fmap_decode_header(blob, offset)
   fmap['areas'] = []
   offset = offset + size
-  for i in range(fmap['nareas']):
+  for _ in range(fmap['nareas']):
     (area, size) = _fmap_decode_area(blob, offset)
     offset = offset + size
     fmap['areas'].append(area)
@@ -174,13 +177,18 @@ def fmap_encode(obj):
   return blob
 
 
-if __name__ == '__main__':
-  # main entry, do a unit test
-  blob = open('bin/example.bin').read()
+def main():
+  """Decode FMAP from supplied file and print."""
+  if len(sys.argv) < 2:
+    print 'Usage: fmap.py <file>'
+    sys.exit(1)
+
+  filename = sys.argv[1]
+  print 'Decoding FMAP from: %s' % filename
+  blob = open(filename).read()
   obj = fmap_decode(blob)
   print obj
-  blob2 = fmap_encode(obj)
-  obj2 = fmap_decode(blob2)
-  print obj2
-  assert obj == obj2
 
+
+if __name__ == '__main__':
+  main()
