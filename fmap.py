@@ -52,6 +52,7 @@ Usage:
 """
 
 
+import logging
 import struct
 import sys
 
@@ -59,8 +60,10 @@ import sys
 # constants imported from lib/fmap.h
 FMAP_SIGNATURE = '__FMAP__'
 FMAP_VER_MAJOR = 1
-FMAP_VER_MINOR = 0
+FMAP_VER_MINOR_MIN = 0
+FMAP_VER_MINOR_MAX = 1
 FMAP_STRLEN = 32
+FMAP_SEARCH_STRIDE = 4
 
 FMAP_FLAGS = {
     'FMAP_AREA_STATIC': 1 << 0,
@@ -102,7 +105,8 @@ def _fmap_decode_header(blob, offset):
   if header['signature'] != FMAP_SIGNATURE:
     raise struct.error('Invalid signature')
   if (header['ver_major'] != FMAP_VER_MAJOR or
-      header['ver_minor'] != FMAP_VER_MINOR):
+      header['ver_minor'] < FMAP_VER_MINOR_MIN or
+      header['ver_minor'] > FMAP_VER_MINOR_MAX):
     raise struct.error('Incompatible version')
 
   # convert null-terminated names
@@ -128,7 +132,58 @@ def _fmap_decode_area_flags(area_flags):
   return tuple([name for name in FMAP_FLAGS if area_flags & FMAP_FLAGS[name]])
 
 
-def fmap_decode(blob, offset=None):
+def _fmap_check_name(fmap, name):
+  """Checks if the FMAP structure has correct name.
+
+  Args:
+    fmap: A decoded FMAP structure.
+    name: A string to specify expected FMAP name.
+
+  Raises:
+    struct.error if the name does not match.
+  """
+  if fmap['name'] != name:
+    raise struct.error('Incorrect FMAP (found: "%s", expected: "%s")' %
+                       (fmap['name'], name))
+
+
+def _fmap_search_header(blob, fmap_name=None):
+  """Searches FMAP headers in given blob.
+
+  Uses same logic from vboot_reference/host/lib/fmap.c.
+
+  Args:
+    blob: A string containing FMAP data.
+    fmap_name: A string to specify target FMAP name.
+
+  Returns:
+    A tuple of (fmap, size, offset).
+  """
+  lim = len(blob) - struct.calcsize(FMAP_HEADER_FORMAT)
+  align = FMAP_SEARCH_STRIDE
+
+  # Search large alignments before small ones to find "right" FMAP.
+  while align <= lim:
+    align *= 2
+
+  while align >= FMAP_SEARCH_STRIDE:
+    for offset in xrange(align, lim + 1, align * 2):
+      if not blob.startswith(FMAP_SIGNATURE, offset):
+        continue
+      try:
+        (fmap, size) = _fmap_decode_header(blob, offset)
+        if fmap_name is not None:
+          _fmap_check_name(fmap, fmap_name)
+        return (fmap, size, offset)
+      except struct.error as e:
+        # Search for next FMAP candidate.
+        logging.debug('Continue searching FMAP due to exception %r', e)
+        pass
+    align /= 2
+  raise struct.error('No valid FMAP signatures.')
+
+
+def fmap_decode(blob, offset=None, fmap_name=None):
   """ Decodes a blob to FMAP dictionary object.
 
   Arguments:
@@ -137,10 +192,13 @@ def fmap_decode(blob, offset=None):
             the blob.
   """
   fmap = {}
+
   if offset is None:
-    # try search magic in fmap
-    offset = blob.find(FMAP_SIGNATURE)
-  (fmap, size) = _fmap_decode_header(blob, offset)
+    (fmap, size, offset) = _fmap_search_header(blob, fmap_name)
+  else:
+    (fmap, size) = _fmap_decode_header(blob, offset)
+    if fmap_name is not None:
+      _fmap_check_name(fmap, fmap_name)
   fmap['areas'] = []
   offset = offset + size
   for _ in range(fmap['nareas']):

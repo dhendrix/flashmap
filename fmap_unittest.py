@@ -5,6 +5,7 @@
 # found in the LICENSE file.
 """Unit test for fmap module."""
 
+import struct
 import unittest
 
 import fmap
@@ -56,6 +57,30 @@ class FmapTest(unittest.TestCase):
   def testDecode(self):
     decoded = fmap.fmap_decode(self.example_blob)
     self.assertEquals(_EXAMPLE_BIN_FMAP, decoded)
+
+  def testDecodeWithOffset(self):
+    decoded = fmap.fmap_decode(self.example_blob, 512)
+    self.assertEquals(_EXAMPLE_BIN_FMAP, decoded)
+
+  def testDecodeWithName(self):
+    decoded = fmap.fmap_decode(self.example_blob, fmap_name='example')
+    self.assertEquals(_EXAMPLE_BIN_FMAP, decoded)
+    decoded = fmap.fmap_decode(self.example_blob, 512, 'example')
+    self.assertEquals(_EXAMPLE_BIN_FMAP, decoded)
+
+  def testDecodeWithWrongName(self):
+    with self.assertRaises(struct.error):
+      decoded = fmap.fmap_decode(self.example_blob, fmap_name='banana')
+    with self.assertRaises(struct.error):
+      decoded = fmap.fmap_decode(self.example_blob, 512, 'banana')
+
+  def testDecodeWithOffset(self):
+    decoded = fmap.fmap_decode(self.example_blob, 512)
+    self.assertEquals(_EXAMPLE_BIN_FMAP, decoded)
+
+  def testDecodeWithWrongOffset(self):
+    with self.assertRaises(struct.error):
+      fmap.fmap_decode(self.example_blob, 42)
 
   def testEncode(self):
     encoded = fmap.fmap_encode(_EXAMPLE_BIN_FMAP)
