@@ -96,7 +96,7 @@ FMAP_AREA_FORMAT = '<II%dsH' % (FMAP_STRLEN)
 
 
 def _fmap_decode_header(blob, offset):
-  """ (internal) Decodes a FMAP header from blob by offset"""
+  """(internal) Decodes a FMAP header from blob by offset"""
   header = {}
   for (name, value) in zip(FMAP_HEADER_NAMES,
                            struct.unpack_from(FMAP_HEADER_FORMAT,
@@ -117,7 +117,7 @@ def _fmap_decode_header(blob, offset):
 
 
 def _fmap_decode_area(blob, offset):
-  """ (internal) Decodes a FMAP area record from blob by offset """
+  """(internal) Decodes a FMAP area record from blob by offset"""
   area = {}
   for (name, value) in zip(FMAP_AREA_NAMES,
                            struct.unpack_from(FMAP_AREA_FORMAT, blob, offset)):
@@ -130,7 +130,7 @@ def _fmap_decode_area(blob, offset):
 
 
 def _fmap_decode_area_flags(area_flags):
-  """ (internal) Decodes a FMAP flags property """
+  """(internal) Decodes a FMAP flags property"""
   return tuple([name for name in FMAP_FLAGS if area_flags & FMAP_FLAGS[name]])
 
 
@@ -180,18 +180,18 @@ def _fmap_search_header(blob, fmap_name=None):
       except struct.error as e:
         # Search for next FMAP candidate.
         logging.debug('Continue searching FMAP due to exception %r', e)
-        pass
-    align /= 2
+    align //= 2
   raise struct.error('No valid FMAP signatures.')
 
 
 def fmap_decode(blob, offset=None, fmap_name=None):
-  """ Decodes a blob to FMAP dictionary object.
+  """Decodes a blob to FMAP dictionary object.
 
-  Arguments:
+  Args:
     blob: a binary data containing FMAP structure.
     offset: starting offset of FMAP. When omitted, fmap_decode will search in
             the blob.
+    fmap_name: A string to specify target FMAP name.
   """
   fmap = {}
 
@@ -211,21 +211,21 @@ def fmap_decode(blob, offset=None, fmap_name=None):
 
 
 def _fmap_encode_header(obj):
-  """ (internal) Encodes a FMAP header """
+  """(internal) Encodes a FMAP header"""
   values = [obj[name] for name in FMAP_HEADER_NAMES]
   return struct.pack(FMAP_HEADER_FORMAT, *values)
 
 
 def _fmap_encode_area(obj):
-  """ (internal) Encodes a FMAP area entry """
+  """(internal) Encodes a FMAP area entry"""
   values = [obj[name] for name in FMAP_AREA_NAMES]
   return struct.pack(FMAP_AREA_FORMAT, *values)
 
 
 def fmap_encode(obj):
-  """ Encodes a FMAP dictionary object to blob.
+  """Encodes a FMAP dictionary object to blob.
 
-  Arguments
+  Args:
     obj: a FMAP dictionary object.
   """
   # fix up values
