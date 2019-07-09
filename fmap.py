@@ -33,9 +33,7 @@
 # GNU General Public License ("GPL") version 2 as published by the Free
 # Software Foundation.
 
-"""
-This module provides basic encode and decode functionality to the flashrom
-memory map (FMAP) structure.
+"""Basic encode/decode functionality of flashrom memory map (FMAP) structures.
 
 Usage:
   (decode)
@@ -52,6 +50,7 @@ Usage:
 """
 
 
+import argparse
 import logging
 import struct
 import sys
@@ -237,18 +236,25 @@ def fmap_encode(obj):
   return blob
 
 
-def main():
-  """Decode FMAP from supplied file and print."""
-  if len(sys.argv) < 2:
-    print 'Usage: fmap.py <file>'
-    sys.exit(1)
+def get_parser():
+  """Return a command line parser."""
+  parser = argparse.ArgumentParser(
+      description=__doc__,
+      formatter_class=argparse.RawTextHelpFormatter)
+  parser.add_argument('file', help='The file to decode & print.')
+  return parser
 
-  filename = sys.argv[1]
-  print 'Decoding FMAP from: %s' % filename
-  blob = open(filename).read()
+
+def main(argv):
+  """Decode FMAP from supplied file and print."""
+  parser = get_parser()
+  opts = parser.parse_args(argv)
+
+  print('Decoding FMAP from: %s' % opts.file)
+  blob = open(opts.file, 'rb').read()
   obj = fmap_decode(blob)
   print obj
 
 
 if __name__ == '__main__':
-  main()
+  sys.exit(main(sys.argv[1:]))
