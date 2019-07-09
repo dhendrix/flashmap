@@ -131,7 +131,9 @@ def _fmap_decode_area(blob, offset):
 
 def _fmap_decode_area_flags(area_flags):
   """(internal) Decodes a FMAP flags property"""
-  return tuple([name for name in FMAP_FLAGS if area_flags & FMAP_FLAGS[name]])
+  # Since FMAP_FLAGS is a dict with arbitrary ordering, sort the list so the
+  # output is stable.  Also sorting is nicer for humans.
+  return tuple(sorted(x for x in FMAP_FLAGS if area_flags & FMAP_FLAGS[x]))
 
 
 def _fmap_check_name(fmap, name):
