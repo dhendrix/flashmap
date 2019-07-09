@@ -1,9 +1,13 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 #
 # Copyright 2017 The Chromium OS Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 """Unit test for fmap module."""
+
+from __future__ import print_function
 
 import struct
 import unittest
@@ -54,7 +58,7 @@ class FmapTest(unittest.TestCase):
   maxDiff = None
 
   def setUp(self):
-    with open('bin/example.bin') as f:
+    with open('bin/example.bin', 'rb') as f:
       self.example_blob = f.read()
 
   def testDecode(self):

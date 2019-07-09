@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 #
 # Copyright 2010, Google Inc.
 # All rights reserved.
@@ -49,8 +50,10 @@ Usage:
   tuple of decoded area flags.
 """
 
+from __future__ import print_function
 
 import argparse
+import copy
 import logging
 import pprint
 import struct
@@ -58,7 +61,7 @@ import sys
 
 
 # constants imported from lib/fmap.h
-FMAP_SIGNATURE = '__FMAP__'
+FMAP_SIGNATURE = b'__FMAP__'
 FMAP_VER_MAJOR = 1
 FMAP_VER_MINOR_MIN = 0
 FMAP_VER_MINOR_MAX = 1
@@ -112,7 +115,15 @@ def _fmap_decode_header(blob, offset):
     raise struct.error('Incompatible version')
 
   # convert null-terminated names
-  header['name'] = header['name'].strip(chr(0))
+  header['name'] = header['name'].strip(b'\x00')
+
+  # In Python 2, binary==string, so we don't need to convert.
+  if sys.version_info.major >= 3:
+    # Do the decode after verifying it to avoid decode errors due to corruption.
+    for name in FMAP_HEADER_NAMES:
+      if hasattr(header[name], 'decode'):
+        header[name] = header[name].decode('utf-8')
+
   return (header, struct.calcsize(FMAP_HEADER_FORMAT))
 
 
@@ -123,9 +134,16 @@ def _fmap_decode_area(blob, offset):
                            struct.unpack_from(FMAP_AREA_FORMAT, blob, offset)):
     area[name] = value
   # convert null-terminated names
-  area['name'] = area['name'].strip(chr(0))
+  area['name'] = area['name'].strip(b'\x00')
   # add a (readonly) readable FLAGS
   area['FLAGS'] = _fmap_decode_area_flags(area['flags'])
+
+  # In Python 2, binary==string, so we don't need to convert.
+  if sys.version_info.major >= 3:
+    for name in FMAP_AREA_NAMES:
+      if hasattr(area[name], 'decode'):
+        area[name] = area[name].decode('utf-8')
+
   return (area, struct.calcsize(FMAP_AREA_FORMAT))
 
 
@@ -171,7 +189,7 @@ def _fmap_search_header(blob, fmap_name=None):
     align *= 2
 
   while align >= FMAP_SEARCH_STRIDE:
-    for offset in xrange(align, lim + 1, align * 2):
+    for offset in range(align, lim + 1, align * 2):
       if not blob.startswith(FMAP_SIGNATURE, offset):
         continue
       try:
@@ -214,12 +232,24 @@ def fmap_decode(blob, offset=None, fmap_name=None):
 
 def _fmap_encode_header(obj):
   """(internal) Encodes a FMAP header"""
+  # Convert strings to bytes.
+  obj = copy.deepcopy(obj)
+  for name in FMAP_HEADER_NAMES:
+    if hasattr(obj[name], 'encode'):
+      obj[name] = obj[name].encode('utf-8')
+
   values = [obj[name] for name in FMAP_HEADER_NAMES]
   return struct.pack(FMAP_HEADER_FORMAT, *values)
 
 
 def _fmap_encode_area(obj):
   """(internal) Encodes a FMAP area entry"""
+  # Convert strings to bytes.
+  obj = copy.deepcopy(obj)
+  for name in FMAP_AREA_NAMES:
+    if hasattr(obj[name], 'encode'):
+      obj[name] = obj[name].encode('utf-8')
+
   values = [obj[name] for name in FMAP_AREA_NAMES]
   return struct.pack(FMAP_AREA_FORMAT, *values)
 
