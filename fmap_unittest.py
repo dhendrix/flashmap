@@ -50,33 +50,32 @@ _EXAMPLE_BIN_FMAP = {
 class FmapTest(unittest.TestCase):
   """Unit test for fmap module."""
 
+  # All failures to diff the entire struct.
+  maxDiff = None
+
   def setUp(self):
     with open('bin/example.bin') as f:
       self.example_blob = f.read()
 
   def testDecode(self):
     decoded = fmap.fmap_decode(self.example_blob)
-    self.assertEquals(_EXAMPLE_BIN_FMAP, decoded)
+    self.assertEqual(_EXAMPLE_BIN_FMAP, decoded)
 
   def testDecodeWithOffset(self):
     decoded = fmap.fmap_decode(self.example_blob, 512)
-    self.assertEquals(_EXAMPLE_BIN_FMAP, decoded)
+    self.assertEqual(_EXAMPLE_BIN_FMAP, decoded)
 
   def testDecodeWithName(self):
     decoded = fmap.fmap_decode(self.example_blob, fmap_name='example')
-    self.assertEquals(_EXAMPLE_BIN_FMAP, decoded)
+    self.assertEqual(_EXAMPLE_BIN_FMAP, decoded)
     decoded = fmap.fmap_decode(self.example_blob, 512, 'example')
-    self.assertEquals(_EXAMPLE_BIN_FMAP, decoded)
+    self.assertEqual(_EXAMPLE_BIN_FMAP, decoded)
 
   def testDecodeWithWrongName(self):
     with self.assertRaises(struct.error):
-      decoded = fmap.fmap_decode(self.example_blob, fmap_name='banana')
+      fmap.fmap_decode(self.example_blob, fmap_name='banana')
     with self.assertRaises(struct.error):
-      decoded = fmap.fmap_decode(self.example_blob, 512, 'banana')
-
-  def testDecodeWithOffset(self):
-    decoded = fmap.fmap_decode(self.example_blob, 512)
-    self.assertEquals(_EXAMPLE_BIN_FMAP, decoded)
+      fmap.fmap_decode(self.example_blob, 512, 'banana')
 
   def testDecodeWithWrongOffset(self):
     with self.assertRaises(struct.error):
