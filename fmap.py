@@ -52,6 +52,7 @@ Usage:
 
 import argparse
 import logging
+import pprint
 import struct
 import sys
 
@@ -242,6 +243,8 @@ def get_parser():
       description=__doc__,
       formatter_class=argparse.RawTextHelpFormatter)
   parser.add_argument('file', help='The file to decode & print.')
+  parser.add_argument('--raw', action='store_true',
+                      help='Dump the object output for scripts.')
   return parser
 
 
@@ -250,10 +253,15 @@ def main(argv):
   parser = get_parser()
   opts = parser.parse_args(argv)
 
-  print('Decoding FMAP from: %s' % opts.file)
+  if not opts.raw:
+    print('Decoding FMAP from: %s' % opts.file)
   blob = open(opts.file, 'rb').read()
   obj = fmap_decode(blob)
-  print obj
+  if opts.raw:
+    print(obj)
+  else:
+    pp = pprint.PrettyPrinter(indent=2)
+    pp.pprint(obj)
 
 
 if __name__ == '__main__':
