@@ -36,6 +36,10 @@
 #ifndef FLASHMAP_LIB_FMAP_H__
 #define FLASHMAP_LIB_FMAP_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <inttypes.h>
 
 #include <valstr.h>
@@ -50,6 +54,7 @@ enum fmap_flags {
 	FMAP_AREA_STATIC	= 1 << 0,
 	FMAP_AREA_COMPRESSED	= 1 << 1,
 	FMAP_AREA_RO		= 1 << 2,
+	FMAP_AREA_PRESERVE	= 1 << 3,  /* Should be preserved on update. */
 };
 
 /* Mapping of volatile and static regions in firmware binary */
@@ -184,9 +189,14 @@ extern int fmap_append_area(struct fmap **fmap,
  * returns a pointer to the entry in the fmap structure if successful
  * returns NULL to indicate failure or if no matching area entry is found
  */
-extern struct fmap_area *fmap_find_area(struct fmap *fmap, const char *name);
+extern const struct fmap_area *fmap_find_area(const struct fmap *fmap,
+					      const char *name);
 
 /* unit testing stuff */
 extern int fmap_test();
+
+#ifdef __cplusplus
+}  /* extern "C" */
+#endif
 
 #endif	/* FLASHMAP_LIB_FMAP_H__*/

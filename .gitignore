@@ -2,6 +2,7 @@
 *.cmd
 *.gcda
 *.gcno
+*.pyc
 .config
 .config.old
 scripts/basic/docproc
